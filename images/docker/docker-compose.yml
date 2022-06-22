@@ -2,13 +2,33 @@ version: "3.8"
 
 services:
   app:
-    image: platziapp
+    image: node_app
+    container_name: node_app_container
     environment:
       MONGO_URL: "mongodb://db:27017/test"
+    build: .
     depends_on:
       - db
     ports:
-      - "3000:3000"
-
+      - 3000:3000
+      - 8000:8000
+    volumes:
+      - .:/usr/src
+      - /usr/src/node_modules
+    networks:   # Use a custom network
+      - redinterna
+    command: npx nodemon --legacy-watch index.js
   db:
+    container_name: mongo_container
     image: mongo
+    ports:
+      - 27017:27017
+    networks:   # Use a custom network
+      - redinterna
+networks:
+  # Use a custom network
+  redinterna:
+    name: 'redinterna'
+    driver: bridge
+
+

@@ -312,4 +312,16 @@ excepto node_modules
     command: npx nodemon --legacy-watch index.js
 
 ```
+## Compose en equipo: override
+Se puede decir que es una extensión del archivo original docker-compose, lo que permite agregar cambios personales sin alterar docker-compose
 
+> Para disponer de múltiples contenedores (escalar) de un mismo servicio, se requiere habilitar un rango de puertos en el host (máquina donde corre Docker), se realiza mediante la instrucción puerto [PUERTO-PUERTO]. Para escalar un servicio se puede usar el flag “–scale” en el comando up:
+```
+docker-compose up -d --scale [nameService]=[numberContainers]
+```
+
+También se dispone del comando scale:
+```
+docker-compose scale [service]=[number] [service2]=[number2]
+```
+[docker compose up](https://docs.docker.com/engine/reference/commandline/compose_up/)

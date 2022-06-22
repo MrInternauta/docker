@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    volumes:
+      - .:/usr/src
+      - /usr/src/node_modules
+    networks:   # Use a custom network
+      - redinterna
+  db:
+    networks:   # Use a custom network
+      - redinterna
+networks:
+  # Use a custom network
+  redinterna:
+    name: 'redinterna'
+    driver: bridge
+
+

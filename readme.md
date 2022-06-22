@@ -325,3 +325,31 @@ También se dispone del comando scale:
 docker-compose scale [service]=[number] [service2]=[number2]
 ```
 [docker compose up](https://docs.docker.com/engine/reference/commandline/compose_up/)
+
+## Tener diferentes override en cada entorno
+- docker-compose.override.yml para development
+- docker-compose.staging.yml para staging
+- docker-compose.production.yml para production
+
+### Ejecutar cada entorno
+
+- para development:
+``` docker-compose up ``` 
+
+- para staging:
+```
+docker-compose \
+	-f docker-compose.yml \
+	-f docker-compose.staging.yml \
+	up -d
+
+``` 
+
+- para production:
+```
+docker-compose \
+	-f docker-compose.yml \
+	-f docker-compose.production.yml \
+	up
+  
+``` 

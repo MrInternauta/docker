@@ -3,21 +3,18 @@ version: "3.8"
 services:
   app:
     build: .
-    container_name: node_app_dev
     volumes:
       - .:/usr/src
       - /usr/src/node_modules
-    command: npx nodemon --legacy-watch index.js
     networks:   # Use a custom network
-      - devred
+      - redinterna
   db:
-    container_name: mongo_container_dev
     networks:   # Use a custom network
-      - devred
+      - redinterna
 networks:
   # Use a custom network
-  devred:
-    name: 'devred'
+  redinterna:
+    name: 'redinterna'
     driver: bridge
 
 

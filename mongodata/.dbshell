@@ -1,0 +1,8 @@
+use platzi
+db.users.insert({"nombre": "Felipe"})
+db.users.find(() )
+db.users.find()
+use platzi
+db.users.find()
+use platzi
+db.users.find()

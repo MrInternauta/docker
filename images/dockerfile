@@ -1,0 +1,5 @@
+FROM ubuntu:latest
+
+RUN touch /usr/src/hola-course.txt
+
+RUN rm /usr/src/hola-course.txt

@@ -174,3 +174,142 @@ CMD ["npx", "nodemon", "index.js"]
 
 ## Docker networking: colaboración entre contenedores
 Crear conexión entre 2 contenedores con docker network
+- Listar redes
+```
+docker network ls
+```
+- Crear red (con --attachable permites que otros contenedores se conecten a ella)
+```
+docker network create --attachable mynetwork 
+```
+- Inspeccionar red
+```
+docker network inspect mynetwork 
+```
+### Crear 2 contenedores (Mongo y App)
+Note: Eliminar contenedores viejos para evitar problemas `docker rm db -f`
+
+- Contenedor de mongo
+```
+docker run -d --name db mongo 
+```
+- Conectar mongo a la red
+```
+docker network connect mynetwork db
+```
+Si hacemos un `docker network inspect mynetwork` podemos ver el contenedor conectado
+
+- Ejecutar la aplicacion conectada a esta red
+```
+docker run -d --name app -p 3000:3000 --env MONGO_URL=mongodb://db:27017/test node_app
+
+
+```
+- Conectar app a la red
+```
+docker network connect mynetwork app
+```
+
+Verificar que esta corriendo la app, debemos ver db y app corriendo
+```
+docker ps 
+```
+
+## Docker Compose: la herramienta todo en uno
+> Compose is a tool for defining and running multi-container Docker applications. With Compose, you use a YAML file to configure your application’s services. Then, with a single command, you create and start all the services from your configuration. To learn more about all the features of Compose, see the list of features.
+
+> Compose works in all environments: production, staging, development, testing, as well as CI workflows. You can learn more about each case in Common Use Cases.
+
+[See Docker compose](https://docs.docker.com/compose/)
+Permite crear de forma declarativa servicios para nuestro proyecto
+
+### (docker-compose)
+- version: debe declararse
+- services: nombre del servicio (describe una parte de la aplicación) un servicio puede tener uno o más contenedores de la misma imagen
+- depends_on: los contenedores de este servicio dependen de... (primero debe ejecutar el servicio)
+- ports: puertos expuestos del servicio (host:container)
+- environment: Variables de entorno
+- env_file: Archivo con variables de entorno 
+```bash
+  env_file:
+    - .env
+```
+volumes: Volumen montado en nuestro servicio (host_dir:container_dir)
+Ejemplo montando el index.js de nuestro proyecto al container
+```bash
+    volumes:
+      - ./index.js:/usr/src/index.js
+```
+- container_name: cambiar el nombre al contenedor del servicio
+*Note:* Docker compose conecta los contenedores a una misma red
+### Comandos
+
+- Ejecutar servicio
+Ultilza por defecto el archivo docker-compose.yml
+Nota: crea una network por defecto con el nombre de la carpeta (folder_default)
+con el commando -d lo ejecuta en background y ejecuta todos los servicios
+```
+docker-compose up -d
+```
+- Tambien puedes ejecutar solo un servicio
+```
+docker-compose up -d <service_name>
+```
+- Bajar servicio
+Baja todos los servicios y redes
+```
+docker-compose down
+```
+- Mostrar logs de un servicio
+```
+docker-compose logs [service_name]
+```
+
+- Mostrar logs de un servicio en tiempo real
+```
+docker-compose logs -f [service_name] [service_name]
+```
+
+- Mostrar logs de varios servicios en tiempo real
+```
+docker-compose logs -f [service_name] [service_name]
+```
+
+- Mostrar todos los logs
+```
+docker-compose logs
+```
+
+- Executar bash de container de un servicio
+
+```
+docker-compose exec [service_name] bash
+```
+
+- Listar los contenedores del proyecto
+
+```
+docker-compose ps
+```
+- Hacer build de un servicio
+Debe de existir el contexto `build .`
+Hace un skip de db ya que esta esta usando una una imagen 
+Tambien de puede solo hacer build de un servicio poniendo el nombre
+```
+docker-compose build
+```
+[Network compose](https://docs.docker.com/compose/networking/)
+### Docker Compose como herramienta de desarrollo
+En el docker-compose copia los archivos del directorio actual `.`
+excepto node_modules
+```
+  volumes:
+    - .:/usr/src
+    - /usr/src/node_modules
+```
+- Ejecutar commando en servicio de docker-compose
+```
+    command: npx nodemon --legacy-watch index.js
+
+```
+

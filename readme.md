@@ -2,15 +2,76 @@
 A simple personal notes for docker
 
 ## Contents
-[TOC]
 
 ## What is docker?
-ocker makes development efficient and predictable
+Docker makes development efficient and predictable
 Docker takes away repetitive, mundane configuration tasks and is used throughout the development lifecycle for fast, easy and portable application development – desktop and cloud. Docker’s comprehensive end to end platform includes UIs, CLIs, APIs and security that are engineered to work together across the entire application delivery lifecycle.
 
 ## See more
 - [Docker Page](https://www.docker.com/)
 - [Docker Images](https://hub.docker.com/)
+
+## Basic commands with Containers
+
+- Run containers
+```
+docker run <image_name>
+```
+- Container Alias
+```
+docker run --name mycontainer <image_name>
+```
+- List containers
+```
+docker ps 
+```
+
+- add `-a` to list ALL containers
+```
+docker ps  -a
+```
+
+- Read more about containers
+```
+docker inspect [container_name]
+```
+
+- Rename container
+```
+docker rename [container_name] [new_container_name]
+```
+- Remove all inused container
+```
+docker rm [container_name]
+```
+- Run linux ubuntu
+```
+docker run ubuntu
+```
+
+- Run linux ubuntu with interactive (it) mode
+```
+docker run -it ubuntu
+```
+- Use `exit` to remove linux main process, exit from it (Exit code 0 = OK)
+
+## Docker life cicle
+Cada vez que se ejecuta un contenedor se inicia un proceso llamado main
+
+### Main (Process Id 1)
+El contenedor existe siempre y cuando exista el main process
+
+### Sub-Process
+Proceso alterno al main process, si falla main process el sub-process seguira existiendo
+Example
+```
+docker run --name [container_name] -d  [image_name] tail -f /dev/null name
+```
+Run a Ubuntu instance 
+```
+docker run --name always_up -d  ubuntu tail -f /dev/null name
+```
+This instance is working on the background and will return the container id
 
 
 ## Images
@@ -29,13 +90,22 @@ Si observamos, partimos desde la base del SO, y vamos agregando capas de persona
 _Hay que tener en cuenta, que todo parte del Kernel de Linux, en caso de utilizar alguna distrubución de Linux_
 
 ### Commands
-- List Images installed: `
+- List Images installed: 
+```
 docker image ls
-`
-- Pull a image: `
+```
+
+- Pull a image: 
+```
 docker pull [image_name]
-` (You can pull from [Docker Images](https://hub.docker.com/) or your own server)
-- History images: `docker history [image_id]` (check how the image layers)
+```
+(You can pull from [Docker Images](https://hub.docker.com/) or your own server)
+
+- History images:
+```
+docker history [image_id]
+```
+(check how the image layers)
 
 ## Create an image
 This process is based on the dockerfile (describe the image)
@@ -353,3 +423,75 @@ docker-compose \
 	up
   
 ``` 
+
+## Administrando tu ambiente de Docker
+### Containers
+- Ver todos los contenedores
+```
+docker ps -a
+```
+- Eliminar todos los contenedores apagados
+```
+docker container prune
+```
+- Eliminar TODOS los contenedores
+```
+docker rm -f $(docker ps -aq)
+```
+### Network
+- Ver todas las redes
+```
+docker network ls
+```
+- Eliminar todos las redes apagadas
+```
+docker network prune
+```
+### Volumes
+- Ver todos los volumenes
+```
+docker volume ls
+```
+- Eliminar todos los volumenes  apagadas
+```
+docker volume prune
+```
+
+### Images
+- Ver todos las images
+```
+docker images ls
+```
+- Eliminar todos las images  apagadas
+```
+docker images prune
+```
+- Eliminar TODAS las images
+```
+docker images rm -f $(docker images ls -aq)
+```
+
+### System
+
+- Eliminar contendedores/volumenes/network/images/build apagadas
+```
+docker system prune
+```
+## Limitando/Administrando los recursos
+Podemos limitar los recursos a los que puede acceder los contenedores de docker
+
+- Limitando memoria
+```
+docker run -d --name app --memory 1g ubuntu
+```
+Note:  debemos de cuidar ya que podemos hacer que el contendor no funcione correctamente por memoria limitada (min 4mb)
+- Para saber a detalle el estado del contenedor
+```
+docker inspect server
+```
+en State.OOMKilled (true = exit for limited memory)
+- Saber cuantos recursos esta consumiendo docker
+```
+docker stats
+```
+Si no limitamos la memoria de nuestros contenedores cada contenedor va a competir con los demás por recursos

@@ -1,9 +1,14 @@
+
+
 *.log
 .dockerignore
 .git
 .gitignore
-build/*
+build
 Dockerfile
 node_modules
 npm-debug.log*
 README.md
+LICENSE
+avanzado
+*.yml

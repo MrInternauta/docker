@@ -30,6 +30,10 @@ docker ps
 ```
 docker ps  -a
 ```
+- Lista el ultimo contenedor terminado (lastest)
+```
+docker ps -l
+```
 
 - Read more about containers
 ```
@@ -495,3 +499,190 @@ en State.OOMKilled (true = exit for limited memory)
 docker stats
 ```
 Si no limitamos la memoria de nuestros contenedores cada contenedor va a competir con los demás por recursos
+
+## Deteniendo contenedores correctamente: SHELL vs. EXEC
+
+### En docker podemos construir images apartir de un archivo llamado dockerfile
+El archivo nos permite ejecutar un comando que se ejecutara una vez inicie nuestro contenedor
+
+Tenemos 2 formas de ejecutar comandos en la imagen (3 si contamos RUN el cual admite shell y exec)
+
+### Construcción del dockerfile
+con shell form y exec form [Ver más](https://programacionymas.com/blog/docker-diferencia-entrypoint-cmd#:~:text=El%20ENTRYPOINT%20especifica%20el%20ejecutable,a%20usar%20con%20dicho%20ejecutable.)
+**Shell**: Ejecuta el proceso como hijo del shell
+- El problema que quiene sh es que no reenvia las señales del OS a sus procesos hijos y no para con el SIGTERM
+```
+FROM ubuntu:trusty
+COPY ["loop.sh", "/"]
+CMD /loop.sh
+```
+**Exec**: Ejecuta el comando como principal
+- Con esto si escucha las señales del OS
+```
+FROM ubuntu:trusty
+COPY ["loop.sh", "/"]
+CMD ["/loop.sh"]
+```
+### Deteniendo contenedor
+Docker tiene dos formas de terminar un contenedor
+- SIGTERM (Si no responde con SIGTERM despues de 10s manda SIGEXIT)
+- SIGEXIT
+Para tener una idea clara de como terminan los procesos en linux [Aqui](https://phoenixnap.com/kb/how-to-kill-a-process-in-linux)
+- Vamos a comprobar Prueba
+- Vamos a images/docker/avanzado/loop
+- Crear la imagen con el dockerfile
+```
+docker build -t loop .
+```
+- Correr la imagen en un contenedor
+```
+docker run -d --name looper loop
+```
+- Parar un contenedor con la señal SIGTERM
+```
+docker stop looper
+```
+>Espera a que los procesos que se estan ejecutando termine antes de parar el container (Por lo que puede bloquearse) al menos un tiempo
+
+>The main process inside the container will receive SIGTERM, and after a grace period, SIGKILL.
+- Parar un contenedor con la señal SIGEXIT
+```
+docker kill looper
+```
+
+- Lista el último proceso (lastest)
+```
+docker ps -l
+```
+
+- Ver los procesos de un contedor
+```
+docker exec looper ps -ef
+```
+NOTE: el comando ps -ef es el comando que se va a ejecutar sobre el contenedor:
+
+ps - lista los procesos (en este caso del contenedor)
+-e o -A  - es para listar todos
+-f - para mustrarlo en un formato de:
+UID : Usuario que lo ejecutó.
+PPID : Id del proceso padre.
+C : Uso del procesador.
+STIME : Inicio de ejecución.
+El comando ps es propio de los sistemas unix
+
+
+Note: Siempre que tengamos un codigo de salida superior a **128** significa que algo malo ocurrio
+
+## Contenedores ejecutables: ENTRYPOINT vs CMD
+### ¿Qué ocurre al definir un CMD sin definir un ENTRYPOINT?
+Si sólo especificas un CMD, entonces Docker ejecutará dicho comando usando el ENTRYPOINT por defecto, que es /bin/sh -c.
+
+Respecto al "entrypoint" (punto de entrada) y "cmd" (comando), puedes sobreescribir ninguno, ambos, o sólo uno de ellos.
+
+Si especificas ambos, entonces:
+- El ENTRYPOINT especifica el ejecutable que usará el contenedor,
+- y CMD se corresponde con los parámetros a usar con dicho ejecutable.
+
+
+**Vamos a images/docker/avanzado/ping**
+
+### Ejemplo sin entrypoint 
+Al no contener el entrypoint toma `/bin/ping` y toma como parametros los demás elementos `"-c", "3", "localhost"`, sin embargo el argumento localhost es fijo por lo que no podemos hacer ping a otros destinos
+```
+  FROM ubuntu:trusty
+  CMD ["/bin/ping", "-c", "3", "localhost"]
+
+```
+### Ejemplo con entrypoint y cmd
+Al usar entry point toma el ejecutable `/bin/ping` como aplicación de entrada y lo que esta en CMD `["localhost"]` de puede cambiar por lo que podemos hacer ping a diferentes destinos
+```
+  FROM ubuntu:trusty
+  ENTRYPOINT ["/bin/ping", "-c", "3"]
+  CMD ["localhost"]
+ ```
+
+ **Ping a localhost**
+ ```
+ docker run --name pinger ping
+ ```
+ **Ping a cualquier otro host**
+ ```
+ docker run --name pinger ping google.com
+ ```
+
+ ### Ver más [aqui](https://programacionymas.com/blog/docker-diferencia-entrypoint-cmd#:~:text=El%20ENTRYPOINT%20especifica%20el%20ejecutable,a%20usar%20con%20dicho%20ejecutable.)
+
+## El contexto de build
+Cuando hacemos un build debemos tener en cuenta los archivos que no queremos agregar a la imagen,
+para ignorar debemos usar `.dockerignore`
+
+```
+*.log
+.dockerignore
+.git
+.gitignore
+build
+Dockerfile
+node_modules
+npm-debug.log*
+README.md
+
+```
+-  Volver a hacer el build de la imagen
+`docker build -t <image_name> .`
+- Volver a ejecutar el contenedor 
+`docker run -d --name <container_name> <image_name>`, Si ya existe un contenedor con ese nombre hay que eliminar la antigua versión primero
+
+Para [Ver más](https://docs.docker.com/engine/reference/builder/#dockerignore-file) acerca de .dockerignore
+
+## Multi-stage build
+```
+# Define una "stage" o fase llamada builder accesible para la siguiente fase
+FROM node:12 as builder
+# copiamos solo los archivos necesarios
+COPY ["package.json", "package-lock.json", "/usr/src/"]
+
+WORKDIR /usr/src
+# Instalamos solo las dependencias para Pro definidas en package.json
+RUN npm install --only=production
+
+COPY [".", "/usr/src/"]
+# instalamos dependencias de desarrollo
+RUN npm install --only=development
+
+# Pasamos los tests
+RUN npm run test
+## Esta imagen esta creada solo para pasar los tests.
+
+# Productive image
+FROM node:12
+
+COPY ["package.json", "package-lock.json", "/usr/src/"]
+
+WORKDIR /usr/src
+# instar las dependencias de PRO
+RUN npm install --only=production
+
+# Copiar  el fichero de la imagen anterior.
+# De cada stage se reutilizan las capas que son iguales.
+COPY --from=builder ["/usr/src/index.js", "/usr/src/"]
+# Pone accesible el puerto
+EXPOSE 3000
+
+CMD ["node", "index.js"]
+### En tiempo de build en caso de que algún paso falle, el build se detendrá por completo.
+```
+
+- Para crear la imagen 
+```
+docker build -t prodapp -f Dockerfile . 
+```
+(ahora le especifíco el Dockerfile)
+- Ejecutar la imagen 
+```
+docker run -d --name prod prodapp
+```
+
+- [Construcción de imágenes Docker en múltiples etapas](ttps://serrodcal.medium.com/construcci%C3%B3n-de-im%C3%A1genes-docker-en-m%C3%BAltiples-etapas-7933179a3e1f)
+
+- [Advanced Dockerfiles: Faster Builds and Smaller Images Using BuildKit and Multistage Builds](https://www.docker.com/blog/advanced-dockerfiles-faster-builds-and-smaller-images-using-buildkit-and-multistage-builds/)

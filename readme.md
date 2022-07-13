@@ -675,14 +675,32 @@ CMD ["node", "index.js"]
 
 - Para crear la imagen 
 ```
+docker build -t node_app_prueba_ignore -f build/production.Dockerfile . 
 docker build -t prodapp -f Dockerfile . 
 ```
 (ahora le especifíco el Dockerfile)
 - Ejecutar la imagen 
 ```
+docker run -d --rm --name node_test node_app_prueba_ignore
 docker run -d --name prod prodapp
 ```
 
 - [Construcción de imágenes Docker en múltiples etapas](ttps://serrodcal.medium.com/construcci%C3%B3n-de-im%C3%A1genes-docker-en-m%C3%BAltiples-etapas-7933179a3e1f)
 
 - [Advanced Dockerfiles: Faster Builds and Smaller Images Using BuildKit and Multistage Builds](https://www.docker.com/blog/advanced-dockerfiles-faster-builds-and-smaller-images-using-buildkit-and-multistage-builds/)
+
+## Docker-in-Docker
+> Existe la Posibilidad de usar Docker desde otros contenedores, se logra usando el Docker socket con bind mount se accede a el archivo docker sock a la maquina anfitriona y accediendo a el desde el otro Docker el cliente puede accederlo puede hablarle directamente.
+
+
+Docker escucha en un puerto en especifico, el cuál esta en esta dirección
+/var/run/docker.sock
+- En este ejemplo se crea un contenedor que al mismo tiempo tiene la misma instancia de docker que el host
+```
+docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock docker:19.03.12
+```
+
+- Ejecutando dive como un contenedor que explora el estado de docker
+```
+docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(which docker):/usr/bin/docker wagoodman/dive node_test
+```

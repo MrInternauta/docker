@@ -59,6 +59,22 @@ docker run -it ubuntu
 ```
 - Use `exit` to remove linux main process, exit from it (Exit code 0 = OK)
 
+- Copy a local file into container
+```
+ docker cp ./some_file CONTAINER:/work
+```
+
+- Copy files from container to local path
+
+```
+ docker cp CONTAINER:/var/logs/ /tmp/app_logs
+```
+- Copy a file from container to stdout. Please note cp command produces a tar stream
+```
+ docker cp CONTAINER:/var/logs/app.log - | tar x -O | grep "ERROR"
+```
+
+[See more](https://docs.docker.com/engine/reference/commandline/cp/#options)
 ## Docker life cicle
 Cada vez que se ejecuta un contenedor se inicia un proceso llamado main
 

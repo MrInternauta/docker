@@ -13,7 +13,7 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          dir("01-jest") {
+          dir("images/docker") {
             dockerImage = docker.build "${env.ARTIFACT_ID}"
           }
         }

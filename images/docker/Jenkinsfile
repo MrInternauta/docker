@@ -25,9 +25,6 @@ pipeline {
       }
     }
     stage('Publish') {
-      when {
-        branch 'main'
-      }
       steps {
         script {
           docker.withRegistry("", "DockerHubCredentials") {
@@ -37,10 +34,6 @@ pipeline {
       }
     }
     stage('Schedule Staging Deployment') {
-      when {
-        branch 'main'
-      }
-      
       steps {
         build job: 'main', parameters: [string(name: 'ARTIFACT_ID', value: "${env.ARTIFACT_ID}")], wait: false
       }

@@ -40,6 +40,7 @@ pipeline {
       when {
         branch 'main'
       }
+      
       steps {
         build job: 'main', parameters: [string(name: 'ARTIFACT_ID', value: "${env.ARTIFACT_ID}")], wait: false
       }

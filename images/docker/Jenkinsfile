@@ -33,10 +33,10 @@ pipeline {
         }
       }
     }
-    // stage('Schedule Staging Deployment') {
-    //   steps {
-    //     build job: 'deploy-webapp-staging', parameters: [string(name: 'ARTIFACT_ID', value: "${env.ARTIFACT_ID}")], wait: false
-    //   }
-    // }
+    stage('Schedule Staging Deployment') {
+      steps {
+        build job: 'Node_app_test_deploy', parameters: [string(name: 'ARTIFACT_ID', value: "${env.ARTIFACT_ID}")], wait: false
+      }
+    }
   }
 }

@@ -29,7 +29,6 @@ pipeline {
         script {
           echo "Pushing the image to docker hub"
           docker.withRegistry("https://registry.hub.docker.com", "mrinternauta") {
-            docker.build("${env.ARTIFACT_ID}")
             docker.push()
           }
         }

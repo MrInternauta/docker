@@ -27,7 +27,6 @@ pipeline {
     stage('Publish') {
       steps {
         script {
-          echo "Pushing the image to docker hub"
           docker.withRegistry("https://registry.hub.docker.com", "mrinternauta") {
             docker.push()
           }

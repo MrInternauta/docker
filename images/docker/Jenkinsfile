@@ -27,8 +27,10 @@ pipeline {
     stage('Publish') {
       steps {
         script {
-          docker.withRegistry("", "DockerHubCredentials") {
-            dockerImage.push()
+          echo "Pushing the image to docker hub"
+          docker.withRegistry("https://registry.hub.docker.com", "mrinternauta") {
+            docker.build("${env.ARTIFACT_ID}")
+            docker.push()
           }
         }
       }

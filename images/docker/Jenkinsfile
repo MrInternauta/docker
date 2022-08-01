@@ -35,7 +35,7 @@ pipeline {
     }
     stage('Schedule Staging Deployment') {
       steps {
-        build job: 'Node_app_test_deploy', parameters: [string(name: 'ARTIFACT_ID', value: "nodeapp")], wait: false
+        build job: 'Node_app_test_deploy', parameters: [string(name: 'ARTIFACT_ID', value: "mrinternauta/node_app:${env.BUILD_NUMBER}")], wait: false
       }
     }
   }
